@@ -52,22 +52,25 @@ contract SupplyChain {
   event LogReceived(uint indexed sku);
 
 /* Create a modifer that checks if the msg.sender is the owner of the contract */
-  modifier verifyOwner (address _address) { require (msg.sender == owner); _; }
-  modifier verifyCaller (address _address) { require (msg.sender == _address); _;}
+  modifier verifyOwner (address _address) {require (msg.sender == owner); _;}
+  modifier verifyCaller (address _address) {require (msg.sender == _address); _;}
 
-  modifier paidEnough(uint _price) { require(msg.value >= _price); _;}
-  modifier checkValue(uint _sku)
-  {
-    //refund them after pay for item (why it is before, _ checks for logic before func)
-    _;
-    uint _price = items[_sku].price;
-    uint amountToRefund = msg.value - _price;
-    items[_sku].buyer.transfer(amountToRefund);
-  }
+  modifier paidEnough(uint _price) {require(msg.value >= _price);_;}
+
+  //*******i just transferred the msg.value - the price. this seemed to be
+  // more efficient as it only reqiures a single transfer rather than 2
+  // modifier checkValue(uint _sku)
+  // {
+  //   //refund them after pay for item (why it is before, _ checks for logic before func)
+  //   _;
+  //   uint _price = items[_sku].price;
+  //   uint amountToRefund = msg.value - _price;
+  //   items[_sku].buyer.transfer(amountToRefund);
+  // }
 
   /* For each of the following modifiers, use what you learned about modifiers
    to give them functionality. For example, the forSale modifier should require
-   that the item with the given sku has the state ForSale. 
+   that the item with the given sku has the state ForSale.
    Note that the uninitialized Item.State is 0, which is also the index of the ForSale value,
    so checking that Item.State == ForSale is not sufficient to check that an Item is for sale.
    Hint: What item properties will be non-zero when an Item has been added?
@@ -102,7 +105,7 @@ contract SupplyChain {
     public
     forSale(sku)
     paidEnough(items[sku].price)
-    checkValue(sku)
+    // checkValue(sku)
   {
     uint _price = items[sku].price;
     items[sku].seller.transfer(msg.value - _price);
