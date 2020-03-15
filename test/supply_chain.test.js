@@ -58,7 +58,7 @@ contract('SupplyChain', function(accounts) {
         var aliceBalanceBefore = await web3.eth.getBalance(alice)
         var bobBalanceBefore = await web3.eth.getBalance(bob)
 
-        await debug(instance.buyItem(0, {from: bob, value: excessAmount}));
+        await instance.buyItem(0, {from: bob, value: excessAmount});
         var aliceBalanceAfter = await web3.eth.getBalance(alice)
         var bobBalanceAfter = await web3.eth.getBalance(bob)
         const result = await instance.fetchItem.call(0)
@@ -69,29 +69,29 @@ contract('SupplyChain', function(accounts) {
         assert.isBelow(Number(bobBalanceAfter), Number(new BN(bobBalanceBefore).sub(new BN(price))), "bob's balance should be reduced by more than the price of the item (including gas costs)");
     })
 
-    // it("should error when not enough value is sent when purchasing an item", async()=>{
-    //     await instance.addItem(name, price, {from: alice})
-    //     await catchRevert(instance.buyItem(0, {from: bob, value: 1}))
-    // })
+    it("should error when not enough value is sent when purchasing an item", async()=>{
+        await instance.addItem(name, price, {from: alice})
+        await catchRevert(instance.buyItem(0, {from: bob, value: 1}))
+    })
 
-    // it("should emit LogSold event when and item is purchased", async()=>{
-    //     var eventEmitted = false
+    it("should emit LogSold event when and item is purchased", async()=>{
+        var eventEmitted = false
 
-    //     await instance.addItem(name, price, {from: alice})
-    //     const tx = await instance.buyItem(0, {from: bob, value: excessAmount})
+        await instance.addItem(name, price, {from: alice})
+        const tx = await instance.buyItem(0, {from: bob, value: excessAmount})
 
-    //     if (tx.logs[0].event == "LogSold") {
-    //         eventEmitted = true
-    //     }
+        if (tx.logs[0].event == "LogSold") {
+            eventEmitted = true
+        }
 
-    //     assert.equal(eventEmitted, true, 'adding an item should emit a Sold event')
-    // })
+        assert.equal(eventEmitted, true, 'adding an item should emit a Sold event')
+    })
 
-    // it("should revert when someone that is not the seller tries to call shipItem()", async()=>{
-    //     await instance.addItem(name, price, {from: alice})
-    //     await instance.buyItem(0, {from: bob, value: price})
-    //     await catchRevert(instance.shipItem(0, {from: bob}))
-    // })
+    it("should revert when someone that is not the seller tries to call shipItem()", async()=>{
+        await instance.addItem(name, price, {from: alice})
+        await instance.buyItem(0, {from: bob, value: price})
+        await catchRevert(instance.shipItem(0, {from: bob}))
+    })
 
     // it("should allow the seller to mark the item as shipped", async() => {
 

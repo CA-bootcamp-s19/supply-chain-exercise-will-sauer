@@ -52,9 +52,9 @@ contract SupplyChain {
   event LogReceived(uint indexed sku);
 
 /* Create a modifer that checks if the msg.sender is the owner of the contract */
-  modifier verifyOwner (address _address) {require (msg.sender == owner); _;}
-  modifier verifyCaller (address _address) {require (msg.sender == _address); _;}
-
+  modifier verifyOwner (address _address) {require (msg.sender == owner); _; "owner not verified";}
+  modifier verifyCaller (address _address) {require (msg.sender == _address); _; "caller not verified";}
+  modifier verifySeller (uint _sku) {require(items[_sku].seller == msg.sender); _; "seller not verified";}
   modifier paidEnough(uint _price) {require(msg.value >= _price);_;}
 
   //*******i just transferred the msg.value - the price. this seemed to be
@@ -111,12 +111,14 @@ contract SupplyChain {
     items[sku].seller.transfer(msg.value - _price);
     items[sku].buyer = msg.sender;
     items[sku].state = State.Sold;
+    emit LogSold(sku);
   }
 
   /* Add 2 modifiers to check if the item is sold already, and that the person calling this function
   is the seller. Change the state of the item to shipped. Remember to call the event associated with this function!*/
   function shipItem(uint sku)
     public
+    verifySeller(sku)
   {}
 
   /* Add 2 modifiers to check if the item is shipped already, and that the person calling this function
