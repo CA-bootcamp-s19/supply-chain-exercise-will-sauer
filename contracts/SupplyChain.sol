@@ -55,6 +55,9 @@ contract SupplyChain {
   modifier verifyOwner (address _address) {require (msg.sender == owner); _; "owner not verified";}
   modifier verifyCaller (address _address) {require (msg.sender == _address); _; "caller not verified";}
   modifier verifySeller (uint _sku) {require(items[_sku].seller == msg.sender); _; "seller not verified";}
+  modifier verifySold (uint _sku) {require(items[_sku].state == State.Sold); _; "item can't be shipped because it has not been sold";}
+  modifier verifyBuyer (uint _sku) {require(items[_sku].buyer == msg.sender); _; "caller is not the buyer";}
+  modifier verifyShipped (uint _sku) {require(items[_sku].state == State.Shipped); _; "item has not been shipped";}
   modifier paidEnough(uint _price) {require(msg.value >= _price);_;}
 
   //*******i just transferred the msg.value - the price. this seemed to be
@@ -101,8 +104,8 @@ contract SupplyChain {
     refunded any excess ether sent. Remember to call the event associated with this function!*/
 
   function buyItem(uint sku)
-    payable
     public
+    payable
     forSale(sku)
     paidEnough(items[sku].price)
     // checkValue(sku)
@@ -118,14 +121,23 @@ contract SupplyChain {
   is the seller. Change the state of the item to shipped. Remember to call the event associated with this function!*/
   function shipItem(uint sku)
     public
+    verifySold(sku)
     verifySeller(sku)
-  {}
+  {
+    items[sku].state = State.Shipped;
+    emit LogShipped(sku);
+  }
 
   /* Add 2 modifiers to check if the item is shipped already, and that the person calling this function
   is the buyer. Change the state of the item to received. Remember to call the event associated with this function!*/
-  function receiveItem(uint sku)
+  function receiveItem(uint _sku)
     public
-  {}
+    verifyBuyer(_sku)
+    verifyShipped(_sku)
+  {
+    items[_sku].state = State.Received;
+    emit LogReceived(_sku);
+  }
 
   /* We have these functions completed so we can run tests, just ignore it :) */
   function fetchItem(uint _sku) public view returns (string memory name, uint sku, uint price, uint state, address seller, address buyer) {
