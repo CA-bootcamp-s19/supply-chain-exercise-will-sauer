@@ -56,12 +56,13 @@ contract SupplyChain {
   modifier verifyCaller (address _address) { require (msg.sender == _address); _;}
 
   modifier paidEnough(uint _price) { require(msg.value >= _price); _;}
-  modifier checkValue(uint _sku) {
+  modifier checkValue(uint _sku)
+  {
     //refund them after pay for item (why it is before, _ checks for logic before func)
     _;
     uint _price = items[_sku].price;
     uint amountToRefund = msg.value - _price;
-    msg.sender.transfer(amountToRefund);
+    items[_sku].buyer.transfer(amountToRefund);
   }
 
   /* For each of the following modifiers, use what you learned about modifiers
@@ -83,7 +84,7 @@ contract SupplyChain {
       skuCount = 0;
   }
 
-  function addItem(string memory _name, uint _price) public returns(bool){
+  function addItem(string memory _name, uint _price) public payable returns(bool){
     emit LogForSale(skuCount);
     items[skuCount] = Item({name: _name, sku: skuCount, price: _price, state: State.ForSale, seller: msg.sender, buyer: address(0)});
     skuCount = skuCount + 1;
@@ -97,13 +98,14 @@ contract SupplyChain {
     refunded any excess ether sent. Remember to call the event associated with this function!*/
 
   function buyItem(uint sku)
-    public
     payable
+    public
     forSale(sku)
     paidEnough(items[sku].price)
     checkValue(sku)
   {
-    items[sku].seller.transfer(msg.value);
+    uint _price = items[sku].price;
+    items[sku].seller.transfer(msg.value - _price);
     items[sku].buyer = msg.sender;
     items[sku].state = State.Sold;
   }
